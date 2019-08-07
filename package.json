@@ -1,0 +1,32 @@
+{
+  "name": "DDD-Example",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc --watch",
+    "start": "node ./build/index.js",
+    "start:nodemon": "nodemon ./build/index.js",
+    "test": "mocha -r ts-node/register source/**/*test.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/chai": "^4.1.7",
+    "@types/mocha": "^5.2.7",
+    "chai": "^4.2.0",
+    "mocha": "^6.2.0",
+    "nodemon": "^1.19.1",
+    "ts-node": "^8.3.0",
+    "typescript": "^3.5.3"
+  },
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "optionalDependencies": {
+    "@types/express": "^4.17.2",
+    "@types/node": "^12.12.6",
+    "DDD-Core": "file:../DDD-Core"
+  }
+}
