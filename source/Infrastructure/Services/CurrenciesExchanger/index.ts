@@ -1,24 +1,43 @@
 import {Service} from "DDD-Core";
 import NumberId from "../../../Domain/Models/NumberId";
-import ICurrenciesExchanger from "../../../Domain/Repositories/CurrenciesExchanger";
+import CurrenciesExchanger from "../../../Domain/Models/CurrenciesExchanger";
+import ICurrenciesExchangerRepository from "../../../Domain/Repositories/CurrenciesExchanger";
+
+export enum ERRORS {
+    CURRENCIES_EXCHANGER_MISSED = 'Currencies exchanger missed'
+}
 
 export default class CurrenciesExchangerService implements Service {
-    private readonly currenciesExchanger: ICurrenciesExchanger;
+    private readonly currenciesExchangerRepository: ICurrenciesExchangerRepository;
 
-    constructor(currenciesExchanger: ICurrenciesExchanger) {
-        this.currenciesExchanger = currenciesExchanger;
+    constructor(currenciesExchangerRepository: ICurrenciesExchangerRepository) {
+        this.currenciesExchangerRepository = currenciesExchangerRepository;
     }
 
-    add(id: number, from: string, to: string, timestamp: number, rarate: number): Promise<boolean> {
-        // @todo Сохранение
-        return Promise.resolve(true);
+    add(id: number, from: string, to: string, timestamp: number, rate: number): Promise<boolean> {
+
+
+        return this.currenciesExchangerRepository.read(new NumberId(id))
+            .then((currenciesExchanger: CurrenciesExchanger | undefined): boolean => {
+                if(!currenciesExchanger) {
+                    const currenciesExchanger = new CurrenciesExchanger(new NumberId(id));
+                    this.currenciesExchangerRepository.add(currenciesExchanger);
+                }
+
+                // this.currenciesExchangerRepository.addRates();
+
+                return true;
+                // return
+            });
     }
 
     read(id: number, from: string, to: string, timestamp: number): Promise<number | undefined> {
-        const currenciesExchanger = this.currenciesExchanger.read(new NumberId(id));
-        return currenciesExchanger ?
-            currenciesExchanger.getRate(from, to, timestamp) :
-            Promise.reject(new Error('Invalid currencies exchanger'));
+        return this.currenciesExchangerRepository.read(new NumberId(id))
+            .then((currenciesExchanger: CurrenciesExchanger | undefined): Promise<number | undefined> => {
+                return currenciesExchanger ?
+                    currenciesExchanger.getRate(from, to, timestamp) :
+                    Promise.reject(new Error(ERRORS.CURRENCIES_EXCHANGER_MISSED));
+            })
     }
 
 }

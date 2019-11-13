@@ -31,19 +31,26 @@ export default class CurrenciesExchangerRepository implements ICurrenciesExchang
                 )
             });
 
-            return item ? new CurrenciesExchangeRate(from, to, timestamp, item.rate): undefined;
+            return item ? new CurrenciesExchangeRate(from, to, timestamp, item.rate) : undefined;
         }
     }
 
-    read(id: NumberId): CurrenciesExchanger | undefined {
+    read(id: NumberId): Promise<CurrenciesExchanger | undefined> {
         const item: TItem | void = this.database.find(({id: idCurrent}: TItem) => id.equals(new NumberId(idCurrent)));
 
-        return item ?
-            new CurrenciesExchanger(new NumberId(item.id), this.loader) :
-            undefined;
+        return Promise.resolve(
+            item ?
+                new CurrenciesExchanger(new NumberId(item.id), this.loader) :
+                undefined
+        );
     }
 
     add(instance: CurrenciesExchanger): void {
-        this.database.push({id: instance.id().value})
+        this.database.push({id: instance.id().value});
     }
+
+    addRates(id: NumberId, instance: CurrenciesExchanger): void {
+        this.databaseRates.push({id: 1, from: '', to: "", timestamp: 1, rate: 1});
+    }
+
 }

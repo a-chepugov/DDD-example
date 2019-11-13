@@ -8,6 +8,11 @@ import Currency from "../Currency";
 import CurrenciesExchangeRate from "../CurrenciesExchangeRate";
 import Money from "../Money";
 
+export enum ERRORS {
+    LOADER_FAILED = 'Exchange rates loading failed',
+    RATE_MISSED = 'Required rate missing'
+}
+
 export class CurrenciesRateId implements IId<CurrenciesExchangeRate> {
     private readonly rate: CurrenciesExchangeRate;
 
@@ -69,7 +74,7 @@ export default class CurrenciesExchanger implements Entity<NumberId> {
                 .then((rate: CurrenciesExchangeRate | void) => {
                     return rate ?
                         rate.rate :
-                        Promise.reject(new Error('Required rates missing'));
+                        Promise.reject(new Error(ERRORS.RATE_MISSED));
                 });
         }
     }
@@ -83,6 +88,9 @@ export default class CurrenciesExchanger implements Entity<NumberId> {
                     return rate;
                 }
             })
+            .catch(() => {
+                throw new Error(ERRORS.LOADER_FAILED);
+            })
     }
 
     exchange(money: Money, to: Currency, timestamp: number): Promise<Money> {
@@ -95,7 +103,7 @@ export default class CurrenciesExchanger implements Entity<NumberId> {
                 .then((rate: CurrenciesExchangeRate | void) => {
                     return rate ?
                         rate.convert(money) :
-                        Promise.reject(new Error('Required rates missing'));
+                        Promise.reject(new Error(ERRORS.RATE_MISSED));
                 });
         }
     }
