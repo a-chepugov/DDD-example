@@ -1,0 +1,12 @@
+POST http://localhost:3000/exchange/rate
+Content-Type: application/json
+
+{
+  "id": 1,
+  "from": "USD",
+  "to": "EUR",
+  "rate": 0.95
+}
+
+###
+

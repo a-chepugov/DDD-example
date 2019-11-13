@@ -8,6 +8,11 @@ import Currency from "../Currency";
 import CurrenciesExchangeRate from "../CurrenciesExchangeRate";
 import Money from "../Money";
 
+export enum ERRORS {
+    LOADER_FAILED = 'Exchange rates loading failed',
+    RATE_MISSED = 'Required rate missing'
+}
+
 export class CurrenciesRateId implements IId<CurrenciesExchangeRate> {
     private readonly rate: CurrenciesExchangeRate;
 
@@ -16,20 +21,20 @@ export class CurrenciesRateId implements IId<CurrenciesExchangeRate> {
     }
 
     toString(): string {
-        return CurrenciesRateId.idFromParams(this.rate.from, this.rate.to, this.rate.timestamp);
+        return CurrenciesRateId.idFromParams(this.rate.from, this.rate.to);
     }
 
     equals(other: CurrenciesRateId): boolean {
         return this.toString() === other.toString();
     };
 
-    static idFromParams(from: Currency, to: Currency, timestamp: number) {
-        return `${from.code}_${to.code}_${timestamp}`;
+    static idFromParams(from: Currency, to: Currency) {
+        return `${from.code}_${to.code}`;
     }
 }
 
 export interface ILoader {
-    (id: NumberId, from: Currency, to: Currency, timestamp: number): CurrenciesExchangeRate | void
+    (id: NumberId, from: Currency, to: Currency): CurrenciesExchangeRate | void
 }
 
 export default class CurrenciesExchanger implements Entity<NumberId> {
@@ -56,46 +61,49 @@ export default class CurrenciesExchanger implements Entity<NumberId> {
         return false;
     };
 
-    getRate(from: string, to: string, timestamp: number): Promise<number> {
+    getRate(from: string, to: string): Promise<number> {
         const fromCurrency = new Currency(from);
         const toCurrency = new Currency(to);
 
-        const id = CurrenciesRateId.idFromParams(fromCurrency, toCurrency, timestamp);
+        const id = CurrenciesRateId.idFromParams(fromCurrency, toCurrency);
         if (this.rates.has(id)) {
             const rate = this.rates.get(id)!;
             return Promise.resolve(rate.rate);
         } else {
-            return this.loadExchangeRates(this.id(), fromCurrency, toCurrency, timestamp)
+            return this.loadExchangeRates(this.id(), fromCurrency, toCurrency)
                 .then((rate: CurrenciesExchangeRate | void) => {
                     return rate ?
                         rate.rate :
-                        Promise.reject(new Error('Required rates missing'));
+                        Promise.reject(new Error(ERRORS.RATE_MISSED));
                 });
         }
     }
 
-    private loadExchangeRates(id: NumberId, from: Currency, to: Currency, timestamp: number): Promise<CurrenciesExchangeRate | void> {
+    private loadExchangeRates(id: NumberId, from: Currency, to: Currency): Promise<CurrenciesExchangeRate | void> {
         return Promise.resolve()
-            .then(() => this.exchangeRatesLoader(this.id(), from, to, timestamp))
+            .then(() => this.exchangeRatesLoader(this.id(), from, to))
             .then((rate: CurrenciesExchangeRate) => {
                 if (rate) {
                     this.addCurrenciesRate(rate);
-                    return rate;
                 }
+                return rate;
+            })
+            .catch(() => {
+                throw new Error(ERRORS.LOADER_FAILED);
             })
     }
 
-    exchange(money: Money, to: Currency, timestamp: number): Promise<Money> {
-        const id = CurrenciesRateId.idFromParams(money.currency, to, timestamp);
+    exchange(money: Money, to: Currency): Promise<Money> {
+        const id = CurrenciesRateId.idFromParams(money.currency, to);
         if (this.rates.has(id)) {
             const rate = this.rates.get(id)!;
             return Promise.resolve(rate.convert(money));
         } else {
-            return this.loadExchangeRates(this.id(), money.currency, to, timestamp)
+            return this.loadExchangeRates(this.id(), money.currency, to)
                 .then((rate: CurrenciesExchangeRate | void) => {
                     return rate ?
                         rate.convert(money) :
-                        Promise.reject(new Error('Required rates missing'));
+                        Promise.reject(new Error(ERRORS.RATE_MISSED));
                 });
         }
     }

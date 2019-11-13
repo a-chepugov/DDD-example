@@ -11,8 +11,8 @@ export interface IRepositories {
 const CurrenciesDB = [{code: 'USD'}, {code: 'EUR'}, {code: 'JPY'}];
 const currenciesExchangerDB = [{id: 1}];
 const currenciesExchangerRatesDB = [
-    {id: 1, from: 'USD', to: 'EUR', timestamp: 1500000000000, rate: 1.5},
-    {id: 1, from: 'USD', to: 'JPY', timestamp: 1500000000000, rate: 1.2},
+    {id: 1, from: 'USD', to: 'EUR', rate: 1.5},
+    {id: 1, from: 'USD', to: 'JPY', rate: 1.2},
 ];
 
 export default (): IRepositories => {

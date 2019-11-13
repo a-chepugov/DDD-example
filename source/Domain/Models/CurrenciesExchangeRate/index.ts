@@ -4,13 +4,11 @@ import Currency from "../Currency";
 import Money from "../Money";
 
 export default class CurrenciesExchangeRate implements ValueObject<CurrenciesExchangeRate> {
-    public readonly timestamp: number;
     public readonly from: Currency;
     public readonly to: Currency;
     private _rate!: number;
 
-    constructor(from: Currency, to: Currency, timestamp: number, rate: number) {
-        this.timestamp = timestamp;
+    constructor(from: Currency, to: Currency, rate: number) {
         this.from = from;
         this.to = to;
         this.setRate(rate);
@@ -32,7 +30,6 @@ export default class CurrenciesExchangeRate implements ValueObject<CurrenciesExc
         return Boolean(
             this.from.equals(other.from) &&
             this.to.equals(other.to) &&
-            this.timestamp === other.timestamp &&
             this.rate === other.rate
         );
     };
@@ -49,11 +46,11 @@ export default class CurrenciesExchangeRate implements ValueObject<CurrenciesExc
         }
     }
 
-    static create(from: string, to: string, timestamp: number, rate: number): CurrenciesExchangeRate {
-        return new CurrenciesExchangeRate(new Currency(from), new Currency(to), timestamp, rate);
+    static create(from: string, to: string, rate: number): CurrenciesExchangeRate {
+        return new CurrenciesExchangeRate(new Currency(from), new Currency(to), rate);
     }
 
     static default(): CurrenciesExchangeRate {
-        return new CurrenciesExchangeRate(Currency.default(), Currency.default(), Date.now(), 1);
+        return new CurrenciesExchangeRate(Currency.default(), Currency.default(), 1);
     }
 }

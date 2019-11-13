@@ -9,7 +9,7 @@ import ICurrenciesExchangerRepository from "../../../Domain/Repositories/Currenc
 type TItem = { id: number };
 type TDatabase = Array<TItem>;
 
-type TItemRate = { id: number, from: string, to: string, timestamp: number, rate: number };
+type TItemRate = { id: number, from: string, to: string, rate: number };
 type TDatabaseRates = Array<TItemRate>;
 
 export default class CurrenciesExchangerRepository implements ICurrenciesExchangerRepository {
@@ -21,29 +21,35 @@ export default class CurrenciesExchangerRepository implements ICurrenciesExchang
         this.database = database;
         this.databaseRates = databaseRates;
 
-        this.loader = (id: NumberId, from: Currency, to: Currency, timestamp: number): CurrenciesExchangeRate | void => {
-            const item = databaseRates.find(({id: idCurrent, from: fromCurrent, to: toCurrent, timestamp: timestampCurrent}: TItemRate) => {
+        this.loader = (id: NumberId, from: Currency, to: Currency): CurrenciesExchangeRate | void => {
+            const item = databaseRates.find(({id: idCurrent, from: fromCurrent, to: toCurrent}: TItemRate) => {
                 return (
                     id.value === idCurrent &&
                     from.code === fromCurrent &&
-                    to.code === toCurrent &&
-                    timestamp === timestampCurrent
+                    to.code === toCurrent
                 )
             });
 
-            return item ? new CurrenciesExchangeRate(from, to, timestamp, item.rate): undefined;
+            return item ? new CurrenciesExchangeRate(from, to, item.rate) : undefined;
         }
     }
 
-    read(id: NumberId): CurrenciesExchanger | undefined {
+    read(id: NumberId): Promise<CurrenciesExchanger | undefined> {
         const item: TItem | void = this.database.find(({id: idCurrent}: TItem) => id.equals(new NumberId(idCurrent)));
 
-        return item ?
-            new CurrenciesExchanger(new NumberId(item.id), this.loader) :
-            undefined;
+        return Promise.resolve(
+            item ?
+                new CurrenciesExchanger(new NumberId(item.id), this.loader) :
+                undefined
+        );
     }
 
     add(instance: CurrenciesExchanger): void {
-        this.database.push({id: instance.id().value})
+        this.database.push({id: instance.id().value});
     }
+
+    addRates(id: NumberId, instance: CurrenciesExchanger): void {
+        this.databaseRates.push({id: 1, from: '', to: "", rate: 1});
+    }
+
 }
