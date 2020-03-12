@@ -107,6 +107,9 @@ export default class CurrenciesExchanger implements Entity<NumberId> {
             .catch(() => {
                 throw new Error(ERRORS.LOADER_FAILED);
             })
+            .catch(() => {
+                throw new Error(ERRORS.LOADER_FAILED);
+            })
     }
 
     exchange(money: Money, to: Currency): Promise<Money> {
