@@ -1,6 +1,8 @@
 import {
     Id as IId,
-    Entity
+    Entity,
+    Event,
+    EventBus
 } from "DDD-Core";
 
 import NumberId from "../NumberId";
@@ -37,15 +39,28 @@ export interface ILoader {
     (id: NumberId, from: Currency, to: Currency): CurrenciesExchangeRate | void
 }
 
+class addCurrenciesRateEvent implements Event {
+    readonly payload: { id: NumberId, rate: CurrenciesExchangeRate };
+    readonly timestamp: number;
+
+    constructor(id: NumberId, rate: CurrenciesExchangeRate) {
+        this.payload = {id, rate};
+        this.timestamp = Date.now();
+    }
+}
+
 export default class CurrenciesExchanger implements Entity<NumberId> {
     public readonly _id: NumberId;
     private rates: Map<string, CurrenciesExchangeRate>;
     private exchangeRatesLoader: ILoader | Function;
+    // private readonly bus: EventBus<any> | undefined;
 
+    // constructor(id: NumberId, exchangeRatesLoader: ILoader | void, bus: EventBus<any> | undefined) {
     constructor(id: NumberId, exchangeRatesLoader: ILoader | void) {
         this.rates = new Map();
         this._id = id;
         this.exchangeRatesLoader = typeof exchangeRatesLoader === 'function' ? exchangeRatesLoader : new Function();
+        // this.bus = bus;
     }
 
     id(): NumberId {
@@ -54,6 +69,7 @@ export default class CurrenciesExchanger implements Entity<NumberId> {
 
     addCurrenciesRate(rate: CurrenciesExchangeRate): CurrenciesExchanger {
         this.rates.set((new CurrenciesRateId(rate)).toString(), rate);
+        // this.bus ? this.bus.publish(addCurrenciesRateEvent, new addCurrenciesRateEvent(this._id), rate) : undefined;
         return this;
     }
 
